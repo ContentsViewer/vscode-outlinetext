@@ -1,0 +1,25 @@
+{
+  "name": "outlinetext",
+  "displayName": "OutlineText",
+  "description": "OutlineText language support for Visual Studio Code.",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "outlinetext",
+      "aliases": ["OutlineText", "outlinetext"],
+      "extensions": [".content"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "outlinetext",
+      "scopeName": "source.outlinetext",
+      "path": "./syntaxes/outlinetext.tmLanguage.json"
+    }]
+  }
+}
