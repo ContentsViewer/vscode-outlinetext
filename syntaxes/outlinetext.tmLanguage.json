@@ -1,7 +1,7 @@
 {
 	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
 	"name": "OutlineText",
-	"scopeName": "source.outlinetext",
+	"scopeName": "text.html.outlinetext",
 	"patterns": [
 		{
 			"include": "#block"
