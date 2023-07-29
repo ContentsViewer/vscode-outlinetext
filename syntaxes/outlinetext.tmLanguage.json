@@ -44,12 +44,12 @@
 			]
 		},
 		"heading": {
-			"match": "# (.*?)$",
+			"match": "(^|\\G)\\s*# (.*?)$",
 			"name": "markup.heading.outlinetext"
 		},
 		"block-quote": {
-			"begin": ">>>",
-			"end": ">>>",
+			"begin": "(^|\\G)\\s*>>>",
+			"end": "(^|\\G)\\s*>>>",
 			"name": "markup.quote.outlinetext",
 			"patterns": [
 				{
@@ -58,8 +58,8 @@
 			]
 		},
 		"code-block": {
-			"begin": "```",
-			"end": "```",
+			"begin": "(^|\\G)\\s*```",
+			"end": "(^|\\G)\\s*```",
 			"name": "markup.code-block.outlinetext"
 		},
 		"inline": {},
