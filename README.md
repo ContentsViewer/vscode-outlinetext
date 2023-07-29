@@ -1,6 +1,10 @@
-# outlinetext README
+# OutlineText Language Support
 
-This is the README for your extension "outlinetext". After writing up a brief description, we recommend including the following sections.
+This extends the VS Code with support for the OutlineText.
+
+## OutlineText
+
+OutlineText is a lightweight markup language that has been developed to make the outline of a sentence easier to understand at the plain text stage. Unlike other lightweight markup languages (Markdown, AsciiDoc, ReStructuredText, …), the indentation represents the hierarchical structure of the text. This makes the hierarchical structure of the text easier to understand visually.
 
 ## Features
 
