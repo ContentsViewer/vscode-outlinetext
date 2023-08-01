@@ -33,23 +33,27 @@
 				}
 			]
 		},
-		"paragraph": {
-			"name": "meta.paragraph.outlinetext",
-			"begin": "(^|\\G)[ ]*(?=\\S)",
-			"while": "(^|\\G)[ ]*(?=\\S)",
+		"line-continuation": {
+			"match": "(\\\\)$\\n?",
+			"captures": {
+				"1": {
+					"name": "punctuation.separator.continuation.line.outlinetext"
+				}
+			}
+		},
+		"heading": {
+			"begin": "^\\s*(#)\\s+(.*?)",
+			"end": "$(?<!\\\\)",
+			"name": "markup.heading.outlinetext",
 			"patterns": [
 				{
 					"include": "#inline"
 				}
 			]
 		},
-		"heading": {
-			"match": "(^|\\G)\\s*# (.*?)$",
-			"name": "markup.heading.outlinetext"
-		},
 		"block-quote": {
-			"begin": "(^|\\G)\\s*>>>",
-			"end": "(^|\\G)\\s*>>>",
+			"begin": "(^|\\G)\\s*>>>$",
+			"end": "(^|\\G)\\s*>>>$",
 			"name": "markup.quote.outlinetext",
 			"patterns": [
 				{
@@ -59,10 +63,9 @@
 		},
 		"code-block": {
 			"begin": "(^|\\G)\\s*```",
-			"end": "(^|\\G)\\s*```",
+			"end": "(^|\\G)\\s*```$",
 			"name": "markup.code-block.outlinetext"
 		},
-		"inline": {},
 		"html": {
 			"patterns": [
 				{
@@ -133,6 +136,35 @@
 					"while": "^(?!\\s*$)"
 				}
 			]
+		},
+		"paragraph": {
+			"name": "meta.paragraph.outlinetext",
+			"begin": "(^|\\G)[ ]*(?=\\S)",
+			"while": "(^|\\G)[ ]*(?=\\S)",
+			"patterns": [
+				{
+					"include": "#inline"
+				}
+			]
+		},
+		"inline": {
+			"patterns": [
+				{
+					"include": "#inline-code"
+				}
+			]
+		},
+		"inline-code": {
+			"match": "(`)([^`]*)(`)",
+			"captures": {
+				"1": {
+					"name": "punctuation.definition.raw.markdown"
+				},
+				"3": {
+					"name": "punctuation.definition.raw.markdown"
+				}
+			},
+			"name": "markup.inline.raw.string.outlinetext"
 		}
 	}
 }
