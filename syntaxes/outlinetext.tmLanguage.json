@@ -150,6 +150,12 @@
 		"inline": {
 			"patterns": [
 				{
+					"include": "#strong"
+				},
+				{
+					"include": "#emphasis"
+				},
+				{
 					"include": "#inline-code"
 				}
 			]
@@ -165,6 +171,30 @@
 				}
 			},
 			"name": "markup.inline.raw.string.outlinetext"
+		},
+		"strong": {
+			"match": "(\\*\\*)(.*?)(\\*\\*)",
+			"name": "markup.bold.outlinetext",
+			"captures": {
+				"1": {
+					"name": "punctuation.definition.bold.outlinetext"
+				},
+				"3": {
+					"name": "punctuation.definition.bold.outlinetext"
+				}
+			}
+		},
+		"emphasis": {
+			"match": "(//)(.*?)(//)",
+			"name": "markup.italic.outlinetext",
+			"captures": {
+				"1": {
+					"name": "punctuation.definition.italic.outlinetext"
+				},
+				"3": {
+					"name": "punctuation.definition.italic.outlinetext"
+				}
+			}
 		}
 	}
 }
