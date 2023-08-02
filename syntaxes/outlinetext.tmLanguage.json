@@ -43,7 +43,7 @@
 		},
 		"heading": {
 			"begin": "^\\s*(#)\\s+(.*?)",
-			"end": "$(?<!\\\\)",
+			"end": "(?<!\\\\)(?<!\\n)$",
 			"name": "markup.heading.outlinetext",
 			"patterns": [
 				{
