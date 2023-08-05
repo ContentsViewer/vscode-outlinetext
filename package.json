@@ -2,7 +2,7 @@
   "name": "outlinetext",
   "displayName": "OutlineText",
   "description": "OutlineText language support for Visual Studio Code.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "preview": true,
   "publisher": "ContentsViewer",
   "icon": "./images/outlinetext.png",
@@ -33,7 +33,6 @@
           "light": "./images/outlinetext.png",
           "dark": "./images/outlinetext.png"
         }
-
       }
     ],
     "grammars": [
