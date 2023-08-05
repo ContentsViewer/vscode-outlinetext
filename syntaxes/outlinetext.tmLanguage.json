@@ -33,16 +33,8 @@
 				}
 			]
 		},
-		"line-continuation": {
-			"match": "(\\\\)$\\n?",
-			"captures": {
-				"1": {
-					"name": "punctuation.separator.continuation.line.outlinetext"
-				}
-			}
-		},
 		"heading": {
-			"begin": "^\\s*(#)\\s+(.*?)",
+			"begin": "^\\s*(#)\\s+(\\S+?)",
 			"end": "(?<!\\\\)(?<!\\n)$",
 			"name": "markup.heading.outlinetext",
 			"patterns": [
@@ -52,8 +44,8 @@
 			]
 		},
 		"block-quote": {
-			"begin": "(^|\\G)\\s*>>>$",
-			"end": "(^|\\G)\\s*>>>$",
+			"begin": "^\\s*>>>$",
+			"end": "^\\s*>>>$",
 			"name": "markup.quote.outlinetext",
 			"patterns": [
 				{
@@ -138,14 +130,17 @@
 			]
 		},
 		"paragraph": {
-			"name": "meta.paragraph.outlinetext",
-			"begin": "(^|\\G)[ ]*(?=\\S)",
-			"while": "(^|\\G)[ ]*(?=\\S)",
-			"patterns": [
-				{
-					"include": "#inline"
+			"match": "^\\s*(\\S+)",
+			"captures": {
+				"1": {
+					"name": "meta.paragraph.outlinetext",
+					"patterns": [
+						{
+							"include": "#inline"
+						}
+					]
 				}
-			]
+			}
 		},
 		"inline": {
 			"patterns": [
