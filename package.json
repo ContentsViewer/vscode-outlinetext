@@ -4,6 +4,7 @@
   "description": "OutlineText language support for Visual Studio Code.",
   "version": "0.0.1",
   "publisher": "ContentsViewer",
+  "icon": "./images/outlinetext.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/ContentsViewer/vscode-outlinetext"

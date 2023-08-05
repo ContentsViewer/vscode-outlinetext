@@ -2,68 +2,41 @@
 
 This extends the VS Code with support for the OutlineText.
 
+> Info: This extension is in preview.
+
 ## OutlineText
 
-OutlineText is a lightweight markup language that has been developed to make the outline of a sentence easier to understand at the plain text stage. Unlike other lightweight markup languages (Markdown, AsciiDoc, ReStructuredText, …), the indentation represents the hierarchical structure of the text. This makes the hierarchical structure of the text easier to understand visually.
+<p align="center">
+  <img src="./images/outlinetext.png" alt="Bookmarks Logo" width="20%" />
+</p>
+
+OutlineText is a lightweight markup language that has been developed to make it easy to understand the outline of a document at the plain text level.
+Unlike other lightweight markup languages (Markdown, AsciiDoc, ReStructuredText, …), the indentation represents the hierarchical structure of the text.
+This makes the hierarchical structure of the text easier to understand visually.
+
+Example:
+
+```
+# Heading
+    Paragraph
+
+# List
+    * item1
+    * item2
+```
+
+<h3 align="center">
+<a href="https://contentsviewer.work/Client/OutlineText/outlinetext-editor.html">Try it!</a>
+</h3>
+
+### More information
+
+* [About OutlineText](https://contentsviewer.work/Master/OutlineText/OutlineText_en)
+* [OutlineText Syntax Reference](https://contentsviewer.work/Master/OutlineText/Syntax_en)
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Requirements
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+* Syntax highlighting
+* Formatting
 
 **Enjoy!**
