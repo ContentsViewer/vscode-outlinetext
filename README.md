@@ -2,8 +2,6 @@
 
 This extends the VS Code with support for the OutlineText.
 
-> Info: This extension is in preview.
-
 ## OutlineText
 
 <p align="center">
