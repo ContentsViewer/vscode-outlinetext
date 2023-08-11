@@ -23,6 +23,9 @@
 					"include": "#block-quote"
 				},
 				{
+					"include": "#separator"
+				},
+				{
 					"include": "#html"
 				},
 				{
@@ -52,6 +55,10 @@
 					"include": "#block"
 				}
 			]
+		},
+		"separator": {
+			"match": "^\\s*\\-{3,}$\\n?",
+			"name": "meta.separator.outlinetext"
 		},
 		"code-block": {
 			"begin": "(^|\\G)\\s*```",
