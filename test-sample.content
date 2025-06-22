@@ -1,0 +1,70 @@
+# OutlineText Sample Document
+
+This is a sample OutlineText document to test the LSP implementation.
+
+## Features
+
+### Text Formatting
+
+You can use **bold text**, //italic text//, __highlighted text__, and ~~strikethrough text~~.
+
+### Links and Images
+
+Here's a [link to Google](https://www.google.com).
+
+And here's an image reference:
+![Sample Image](https://via.placeholder.com/300x200)
+
+### Lists
+
+* First item
+* Second item
+    * Nested item
+    * Another nested item
+* Third item
+
+Numbered lists:
+1. First numbered item
+2. Second numbered item
+3. Third numbered item
+
+### Code
+
+Inline code: `console.log("Hello World");`
+
+Code block:
+```javascript
+function hello() {
+    console.log("Hello, OutlineText!");
+}
+```
+
+### References
+
+This is a reference to a source^[example.source].
+
+[example.source]: This is an example source for citation
+
+### Tables
+
+| Column 1 | Column 2 | Column 3 |
+|----------|----------|----------|
+| Data 1   | Data 2   | Data 3   |
+| More     | Table    | Content  |
+
+### Box Elements
+
+[Note::info]
+====
+This is an information box that provides additional context.
+====
+
+### Definition Lists
+
+Term 1:
+    Definition of term 1
+
+Term 2:
+    Definition of term 2
+    
+    With multiple paragraphs in the definition.
