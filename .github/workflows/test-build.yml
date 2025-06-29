@@ -54,6 +54,12 @@ jobs:
         npm ci --omit=dev
         cd server && npm ci --omit=dev && cd ..
         
+    - name: Install build tools (TypeScript and type definitions)
+      run: |
+        # Install TypeScript compiler and type definitions for build only
+        npm install --no-save typescript @types/node
+        cd server && npm install --no-save typescript @types/node && cd ..
+        
     - name: Compile TypeScript
       run: npm run compile
       
