@@ -145,26 +145,7 @@ function registerCommands(context: vscode.ExtensionContext) {
         }
     );
 
-    // Export HTML command
-    const exportHtmlCommand = vscode.commands.registerCommand(
-        'outlinetext.exportHtml',
-        async () => {
-            const editor = vscode.window.activeTextEditor;
-            if (!editor || editor.document.languageId !== 'outlinetext') {
-                vscode.window.showErrorMessage('Please open an OutlineText file first.');
-                return;
-            }
-
-            try {
-                await exportAsHtml(editor.document);
-            } catch (error) {
-                console.error('Export error:', error);
-                vscode.window.showErrorMessage(`Export failed: ${error}`);
-            }
-        }
-    );
-
-    context.subscriptions.push(showPreviewCommand, exportHtmlCommand);
+    context.subscriptions.push(showPreviewCommand);
 }
 
 let previewPanel: vscode.WebviewPanel | undefined;
@@ -223,40 +204,6 @@ async function showPreview(document: vscode.TextDocument) {
     previewPanel.webview.html = getPreviewHtml(html, previewPanel.webview, extensionContext);
 }
 
-async function exportAsHtml(document: vscode.TextDocument) {
-    const content = document.getText();
-
-    if (!client || !client.isRunning()) {
-        throw new Error('Language server is not running');
-    }
-
-    // Try to get HTML from language server, fallback to basic conversion
-    let html: string;
-    try {
-        html = await client.sendRequest<string>('outlinetext/preview', {
-            uri: document.uri.toString(),
-            content: content
-        });
-
-    } catch (error) {
-        html = `error: ${error}`;
-    }
-
-    const fullHtml = generateFullHtmlDocument(html, document.fileName);
-
-    // Show save dialog
-    const saveUri = await vscode.window.showSaveDialog({
-        defaultUri: vscode.Uri.file(document.fileName.replace(/\.(content|otl)$/, '.html')),
-        filters: {
-            'htmlFiles': ['html']
-        }
-    });
-
-    if (saveUri) {
-        await vscode.workspace.fs.writeFile(saveUri, Buffer.from(fullHtml, 'utf8'));
-        vscode.window.showInformationMessage(`HTML exported to ${saveUri.fsPath}`);
-    }
-}
 
 function getPreviewHtml(content: string, webview: vscode.Webview, context: vscode.ExtensionContext): string {
     const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'style.css'));
@@ -315,44 +262,6 @@ function getPreviewHtml(content: string, webview: vscode.Webview, context: vscod
     <script src="${debugJsUri}"></script>
     <script src="${loadSyntaxHighlighterJsUri}"></script>
     <script src="${loadMathJaxJsUri}"></script>
-</head>
-<body>
-    ${content}
-</body>
-</html>`;
-}
-
-function generateFullHtmlDocument(content: string, title: string): string {
-    return `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${path.basename(title, path.extname(title))}</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            color: #333;
-        }
-        h1, h2, h3, h4, h5, h6 {
-            margin-top: 1.5em;
-            margin-bottom: 0.5em;
-        }
-        code {
-            background-color: #f4f4f4;
-            padding: 2px 4px;
-            border-radius: 3px;
-            font-family: 'Monaco', 'Consolas', monospace;
-        }
-        img {
-            max-width: 100%;
-            height: auto;
-        }
-    </style>
 </head>
 <body>
     ${content}

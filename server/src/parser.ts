@@ -100,22 +100,12 @@ export class OutlineTextParser implements WasmParser {
                     OutlineText\\Parser::Init();
                     ?>`
                 });
-                console.log("BBBBBB", result);
 
                 if (result.errors) {
                     console.error('PHP errors:', result.errors);
                     throw new Error('PHP initialization failed: ' + result.errors);
                 }
             }
-            {
-                // const result = await this.phpModule.run({
-                //     code: `<?php
-                //     OutlineText\\Parser::Init();
-                //     ?>`
-                // });
-                // console.log("!!!!",result);
-            }
-
 
             this.wasmModule = this.phpModule;
         } catch (error) {
@@ -130,10 +120,11 @@ export class OutlineTextParser implements WasmParser {
                 throw new Error('PHP WASM not initialized');
             }
 
-            
+            // Normalize line endings: remove CR characters to get LF-only
+            const normalizedContent = content.replace(/\r/g, '');
+
             // Use Base64 encoding for safe in-memory transfer
-            const base64Content = Buffer.from(content, 'utf-8').toString('base64');
-            console.log("!!!!", content.substring(0, 100) + "...");
+            const base64Content = Buffer.from(normalizedContent, 'utf-8').toString('base64');
 
             // Call PHP function through WASM using correct API
             const result = await this.phpModule.run({
@@ -142,12 +133,12 @@ export class OutlineTextParser implements WasmParser {
                     use OutlineText\\Parser;
                     
                     $content = base64_decode('${base64Content}');
-                    $html = Parser::Parse($content);
+                    $context = new OutlineText\\Context();
+                    $html = Parser::Parse($content, $context);
                     echo json_encode(['html' => $html, 'metadata' => [], 'diagnostics' => []]);
                 ?>`
             });
-            
-            console.log("!result", result);
+
 
             if (result.errors) {
                 console.error('PHP execution errors:', result.errors);

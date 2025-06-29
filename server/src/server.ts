@@ -55,8 +55,6 @@ connection.onInitialize((params: InitializeParams) => {
         capabilities.textDocument.publishDiagnostics.relatedInformation
     );
 
-    console.log("BBBB");
-
     const result: InitializeResult = {
         capabilities: {
             textDocumentSync: TextDocumentSyncKind.Incremental,
@@ -154,7 +152,7 @@ connection.onRequest('outlinetext/preview', async (params: ParseRequest): Promis
     try {
         const content = params.content;
         const options = params.options || {};
-        
+        console.log("params.uri:",params.uri);
         const result = await parser.parse(content, options);
         return result.html;
     } catch (error) {

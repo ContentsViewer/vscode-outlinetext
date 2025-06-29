@@ -26,8 +26,8 @@
           "outlinetext"
         ],
         "extensions": [
-          ".content",
-          ".otl"
+          ".otxt",
+          ".content"
         ],
         "configuration": "./language-configuration.json",
         "icon": {
@@ -48,15 +48,7 @@
         "command": "outlinetext.showPreview",
         "title": "Show Preview",
         "category": "OutlineText",
-        "icon": {
-          "light": "./images/preview.svg",
-          "dark": "./images/preview.svg"
-        }
-      },
-      {
-        "command": "outlinetext.exportHtml",
-        "title": "Export as HTML",
-        "category": "OutlineText"
+        "icon": "$(preview)"
       }
     ],
     "menus": {
@@ -70,10 +62,6 @@
       "commandPalette": [
         {
           "command": "outlinetext.showPreview",
-          "when": "resourceLangId == outlinetext"
-        },
-        {
-          "command": "outlinetext.exportHtml",
           "when": "resourceLangId == outlinetext"
         }
       ]
