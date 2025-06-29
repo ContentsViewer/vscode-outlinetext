@@ -1,70 +1,160 @@
-# OutlineText Sample Document
+<!-- 
+    コメントブロック
 
-This is a sample OutlineText document to test the LSP implementation.
+ -->
+# 見出し
+__________________________________
+    # 小見出し
+        <!-- コメントライン -->
+        段落
 
-## Features
+    # リスト
+        # 順序なし
+            * item1
+                * item1-1
+            * item2
+            * item3
+        
+        # ツリー
+            + root
+                + node
+                    + node
+                    + node
+                + node
 
-### Text Formatting
-
-You can use **bold text**, //italic text//, __highlighted text__, and ~~strikethrough text~~.
-
-### Links and Images
-
-Here's a [link to Google](https://www.google.com).
-
-And here's an image reference:
-![Sample Image](https://via.placeholder.com/300x200)
-
-### Lists
-
-* First item
-* Second item
-    * Nested item
-    * Another nested item
-* Third item
-
-Numbered lists:
-1. First numbered item
-2. Second numbered item
-3. Third numbered item
-
-### Code
-
-Inline code: `console.log("Hello World");`
-
-Code block:
-```javascript
-function hello() {
-    console.log("Hello, OutlineText!");
-}
-```
-
-### References
-
-This is a reference to a source^[example.source].
-
-[example.source]: This is an example source for citation
-
-### Tables
-
-| Column 1 | Column 2 | Column 3 |
-|----------|----------|----------|
-| Data 1   | Data 2   | Data 3   |
-| More     | Table    | Content  |
-
-### Box Elements
-
-[Note::info]
-====
-This is an information box that provides additional context.
-====
-
-### Definition Lists
-
-Term 1:
-    Definition of term 1
-
-Term 2:
-    Definition of term 2
+        # 順序あり
+            1. 手順1
+            2. 手順2
+                2.1. 手順2.1
+                2.2. 手順2.2
     
-    With multiple paragraphs in the definition.
+    # 定義リスト
+        CPU:
+            コンピュータにおける中心的な処理装置（プロセッサ）^[wiki-cpu].
+
+        RAM:
+            処理を行うための一時的な記憶領域^[wiki-ram].
+        
+        HDD:
+            情報を記録し読み出す補助記憶装置^[wiki-hdd].
+
+    # テーブル
+        |[caption]
+        | A   || B   | C    |
+        |-----||-----|------|
+        | 1   ||     |      |
+        | 2   ||     |      |
+    
+    # 画像
+        ![google](https://www.google.co.jp/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png)
+
+    # インライン
+        文章内に入れられる, **重要** とか //強調// とか __マーカ__　とか `code` とか ~~打消し~~ そして
+        [google](https://www.google.co.jp/)
+
+    # コードブロック
+        ```python
+            print('Hello world!')
+
+        ```
+    
+    # 引用ブロック
+        虐殺の言語の動作原理についてジョン^[注.John]は次のように語った.
+        
+        >>>
+            言語の違いによらない深層の文法だから, 
+            そのことばを享受するきみたち自身にはそれが見えない
+        >>>
+
+    # ボックス
+        本文の内容に関係する補足説明をする際, ボックスを使います.
+
+        [補足事項]
+        ============================================================
+            ボックスの中では, __見出し__, __テーブル__, __コードブロック__など
+            OutlineTextの記法がそのまま使用できます.
+
+            |[ブラウザシェア2018]
+            | ブラウザ名  |  シェア率 |
+            |-------------|-----------|
+            | Chrome      | 59.67%    |
+            | Safari      | 14.51%    |
+            | UC Browser  | 6.28%     |
+            | Firefox     | 4.93%     |
+            | Opera       | 3.5%      |
+            | IE          | 3.03%     |
+
+            ```csharp
+                public class MyClass
+                {
+                    private string status = string.Empty;
+                    public string Status
+                    {
+                    get { return status; }
+                    private set { status = value; }
+                    }
+                }
+            ```
+            
+            [ボックスの中でボックス]
+            =================================
+
+                ここまでいくことはまれ
+
+            =================================
+
+        ============================================================
+
+        [これはまずい! :: WARNING]
+        ==========================================
+
+            やばい!^[yabai]
+
+        ==========================================
+        
+        [故障の危険 :: CAUTION]
+        =========================================
+
+            塗れた手で回路を触ると故障の原因になります.
+            
+        =========================================
+
+    # 数式
+        有名なオイラーの公式は，$e^{i\theta}=\cos\theta+i\sin\theta$ です.
+
+        式\eqref{eq:Homogeneous-Transformation}は同次変換の式です. ローカル座標系からワールド座標系への変換です.
+
+        ```math
+            \begin{align}
+            \left[ \begin{matrix} x_w \\ y_w \\ z_w \\ 1 \end{matrix} \right]
+            = 
+            \left[ \begin{matrix} R_{xx} & R_{xy} & R_{xz} & T_x \\
+                                R_{yx} & R_{yy} & R_{yz} & T_y \\
+                                R_{zx} & R_{zy} & R_{zz} & T_z \\
+                                0    & 0    & 0    & 1 \end{matrix} \right]
+            \left[ \begin{matrix} x \\ y \\ z \\ 1 \end{matrix} \right]
+            \label{eq:Homogeneous-Transformation}
+            \end{align}
+
+        ```
+
+    # HTML 要素
+        HTMLタグをそのまま書くことが可能です.<br>
+        HTML要素内はOutlineTextの処理対象外です.
+
+        <p>
+            htmlタグ`p`による段落
+        </p>
+
+        要素から抜けると`OutlineText`の処理対象になります.
+
+# 注釈
+__________________________________
+    [注.John]: 小説&quot;虐殺機関&quot;の登場人物の一人
+
+# 参考文献
+__________________________________
+    [wiki-cpu]: [&quot;CPU&quot;](https://ja.wikipedia.org/wiki/CPU). Wikipedia. (accessed: 2020-5-10).
+    [wiki-ram]: [&quot;Random Access Memory&quot;](https://ja.wikipedia.org/wiki/Random_Access_Memory). Wikipedia. (accessed: 2020-5-10).
+    [wiki-hdd]: [&quot;ハードディスクドライブ&quot;](https://ja.wikipedia.org/wiki/ハードディスクドライブ). Wikipedia. (accessed: 2020-5-10).
+    [yabai]: やばい文献

@@ -10,7 +10,7 @@ import {
 let client: LanguageClient | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
-    console.log('OutlineText extension is now active!');
+    console.log('OutlineText extension is now active');
 
     // Register document formatting provider (original functionality)
     registerFormattingProvider(context);
@@ -62,7 +62,7 @@ function startLanguageServer(context: vscode.ExtensionContext) {
     try {
         // Server module path
         const serverModule = context.asAbsolutePath(
-            path.join('out', 'server', 'server.js')
+            path.join('server', 'out', 'server.js')
         );
 
         // Check if server exists
@@ -72,7 +72,6 @@ function startLanguageServer(context: vscode.ExtensionContext) {
             return;
         }
 
-    console.log("AAAAA");
         // Server options
         const serverOptions: ServerOptions = {
             run: { module: serverModule, transport: TransportKind.ipc },
@@ -168,7 +167,7 @@ let previewPanel: vscode.WebviewPanel | undefined;
 
 async function showPreview(document: vscode.TextDocument) {
     const content = document.getText();
-    
+
     // Try to get HTML from language server, fallback to basic conversion
     let html: string;
     try {
@@ -209,7 +208,7 @@ async function showPreview(document: vscode.TextDocument) {
 
 async function exportAsHtml(document: vscode.TextDocument) {
     const content = document.getText();
-    
+
     // Try to get HTML from language server, fallback to basic conversion
     let html: string;
     try {
@@ -249,10 +248,10 @@ function basicOutlineTextToHtml(content: string): string {
     let codeBlockType = '';
     let inList = false;
     let listLevel = 0;
-    
+
     for (let i = 0; i < lines.length; i++) {
         let line = lines[i];
-        
+
         // Handle code blocks
         if (line.trim().startsWith('```')) {
             if (!inCodeBlock) {
@@ -266,12 +265,12 @@ function basicOutlineTextToHtml(content: string): string {
             }
             continue;
         }
-        
+
         if (inCodeBlock) {
             html += escapeHtml(line) + '\n';
             continue;
         }
-        
+
         // Empty lines
         if (line.trim() === '') {
             if (inList) {
@@ -282,7 +281,7 @@ function basicOutlineTextToHtml(content: string): string {
             html += '<br>';
             continue;
         }
-        
+
         // Headers
         const headerMatch = line.match(/^(#{1,6})\s+(.+)$/);
         if (headerMatch) {
@@ -296,40 +295,40 @@ function basicOutlineTextToHtml(content: string): string {
             html += `<h${level}>${text}</h${level}>`;
             continue;
         }
-        
+
         // Lists
         const listMatch = line.match(/^(\s*)[\*\+\-]\s+(.+)$/);
         if (listMatch) {
             const indent = listMatch[1].length;
             const text = processInlineElements(listMatch[2]);
-            
+
             if (!inList) {
                 html += '<ul>';
                 inList = true;
                 listLevel = indent;
             }
-            
+
             html += `<li>${text}</li>`;
             continue;
         }
-        
+
         // Regular paragraphs
         if (inList) {
             html += '</ul>';
             inList = false;
             listLevel = 0;
         }
-        
+
         if (line.trim() !== '') {
             html += `<p>${processInlineElements(line)}</p>`;
         }
     }
-    
+
     // Close any open lists
     if (inList) {
         html += '</ul>';
     }
-    
+
     return `<div class="outlinetext-parser-output">${html}</div>`;
 }
 

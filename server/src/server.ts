@@ -57,7 +57,7 @@ connection.onInitialize((params: InitializeParams) => {
         capabilities.textDocument.publishDiagnostics.relatedInformation
     );
 
-    console.log("AAAAA");
+    console.log("BBBB");
 
     const result: InitializeResult = {
         capabilities: {

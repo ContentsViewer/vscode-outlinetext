@@ -1,6 +1,9 @@
 .vscode/**
 .vscode-test/**
 src/**
+server/src/**
+server/node_modules/**
+node_modules/**
 .gitignore
 .yarnrc
 vsc-extension-quickstart.md
@@ -8,3 +11,10 @@ vsc-extension-quickstart.md
 **/.eslintrc.json
 **/*.map
 **/*.ts
+DEV-SETUP.md
+FOLDER_STRUCTURE_RECOMMENDATION.md
+test-sample.content
+.git/**
+.github/**
+**/.DS_Store
+**/Thumbs.db

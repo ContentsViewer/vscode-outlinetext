@@ -1,6 +1,14 @@
 import path from 'path';
 import fs from 'fs/promises';
 import type { WasmParser, ParseOptions, ParseResult, ParseDiagnostic } from './shared/types';
+// import { OutlineTextJSParser, OutlineTextParseContext } from './outline-text-js-parser';
+
+// PHP WASM interface
+interface PhpWasm {
+    run(code: string): string;
+    setPhpCode(code: string): void;
+    call(functionName: string, ...args: any[]): any;
+}
 
 export class OutlineTextParser implements WasmParser {
     private isInitialized = false;
@@ -13,10 +21,10 @@ export class OutlineTextParser implements WasmParser {
         }
 
         try {
-            // For now, use a mock implementation
-            // TODO: Replace with actual WASM PHP integration
-            await this.initializeMockParser();
-            
+            // Try to load actual PHP WASM with correct API
+            await this.initializePhpWasm();
+            console.log('PHP WASM parser initialized successfully.');
+
             this.isInitialized = true;
         } catch (error) {
             console.error('Failed to initialize WASM parser:', error);
@@ -28,15 +36,18 @@ export class OutlineTextParser implements WasmParser {
         if (!this.isInitialized) {
             await this.initialize();
         }
+        if (this.wasmModule === null) {
+            throw new Error('WASM parser is not initialized');
+        }
 
         const startTime = Date.now();
 
         try {
-            // Mock implementation - replace with actual WASM call
-            const result = await this.mockParse(content, options);
-            
+            // Use WASM parser if available, fallback to mock
+            const result = await this.wasmParse(content, options);
+
             const parseTime = Date.now() - startTime;
-            
+
             return {
                 ...result,
                 metadata: {
@@ -59,93 +70,85 @@ export class OutlineTextParser implements WasmParser {
             // Cleanup WASM module
             this.phpModule = null;
         }
-        
+
         if (this.wasmModule) {
             this.wasmModule = null;
         }
-        
+
         this.isInitialized = false;
     }
 
-    private async initializeMockParser(): Promise<void> {
-        // Mock initialization - simulates WASM loading time
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        console.log('Mock WASM parser initialized!!');
-    }
+    private async initializePhpWasm(): Promise<void> {
+        try {
+            // Import correct modules according to documentation
+            const { PHP } = await import('@php-wasm/universal');
+            const { loadNodeRuntime } = await import('@php-wasm/node');
 
-    private async mockParse(content: string, options: ParseOptions): Promise<ParseResult> {
-        // Mock parser implementation
-        // This will be replaced with actual WASM PHP calls
-        
-        const lines = content.split('\n');
-        const diagnostics: ParseDiagnostic[] = [];
-        
-        // Simple validation
-        lines.forEach((line, index) => {
-            // Check for unmatched brackets
-            const openBrackets = (line.match(/\[/g) || []).length;
-            const closeBrackets = (line.match(/\]/g) || []).length;
-            
-            if (openBrackets !== closeBrackets) {
-                diagnostics.push({
-                    line: index,
-                    column: 0,
-                    severity: 'warning',
-                    message: 'Unmatched brackets detected',
-                    code: 'unmatched-brackets'
-                });
+            // Load PHP runtime for Node.js and create PHP instance
+            const runtime = await loadNodeRuntime('8.3');
+            this.phpModule = new PHP(runtime);
+
+            // Load our OutlineText parser PHP code
+            const phpCodePath = path.join(__dirname, '../../wasm/php/OutlineText.php');
+            const phpCode = await fs.readFile(phpCodePath, 'utf-8');
+
+            // Execute the PHP code to register functions
+            const result = await this.phpModule.run({
+                code: phpCode
+            });
+
+            if (result.errors) {
+                console.error('PHP errors:', result.errors);
             }
-        });
 
-        // Mock HTML conversion
-        let html = this.mockConvertToHtml(content);
-
-        return {
-            html,
-            metadata: {
-                parseTime: 0, // Will be set by caller
-                references: [],
-                headings: this.extractHeadings(content)
-            },
-            diagnostics
-        };
+            this.wasmModule = this.phpModule;
+        } catch (error) {
+            console.error('PHP WASM initialization failed:', error);
+            throw error;
+        }
     }
 
-    private mockConvertToHtml(content: string): string {
-        // Very basic mock conversion
-        let html = content
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\/\/(.*?)\/\//g, '<em>$1</em>')
-            .replace(/__(.*?)__/g, '<mark>$1</mark>')
-            .replace(/~~(.*?)~~/g, '<del>$1</del>')
-            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>')
-            .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" />')
-            .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-            .replace(/^## (.+)$/gm, '<h2>$2</h2>')
-            .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-            .replace(/\n/g, '<br>\n');
-
-        return `<div class="outlinetext-parser-output">${html}</div>`;
-    }
-
-    private extractHeadings(content: string): Array<{level: number, text: string, line: number}> {
-        const headings: Array<{level: number, text: string, line: number}> = [];
-        const lines = content.split('\n');
-        
-        lines.forEach((line, index) => {
-            const match = line.match(/^(#+)\s+(.+)$/);
-            if (match) {
-                headings.push({
-                    level: match[1].length,
-                    text: match[2],
-                    line: index
-                });
+    private async wasmParse(content: string, options: ParseOptions): Promise<ParseResult> {
+        try {
+            if (!this.phpModule) {
+                throw new Error('PHP WASM not initialized');
             }
-        });
-        
-        return headings;
+
+            // Escape content for PHP
+            const escapedContent = JSON.stringify(content);
+
+            // Call PHP function through WASM using correct API
+            const result = await this.phpModule.run({
+                code: `<?php
+                    $result = parseOutlineText(${escapedContent});
+                    echo $result;
+                ?>`
+            });
+
+            if (result.errors) {
+                console.error('PHP execution errors:', result.errors);
+                throw new Error('PHP execution failed: ' + result.errors);
+            }
+
+            const parsed = JSON.parse(result.text || '{}');
+
+            return {
+                html: parsed.html || '',
+                metadata: {
+                    parseTime: 0,
+                    references: [],
+                    headings: parsed.metadata?.headings || [],
+                    ...parsed.metadata
+                },
+                diagnostics: parsed.diagnostics || []
+            };
+        } catch (error) {
+            console.error('WASM parse error:', error);
+            throw error;
+        }
     }
+
+
 }
 
 // Export for testing
