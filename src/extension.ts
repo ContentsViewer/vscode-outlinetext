@@ -8,9 +8,13 @@ import {
 } from 'vscode-languageclient/node';
 
 let client: LanguageClient | undefined;
+let extensionContext: vscode.ExtensionContext;
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('OutlineText extension is now active');
+
+    // Store extension context globally
+    extensionContext = context;
 
     // Register document formatting provider (original functionality)
     registerFormattingProvider(context);
@@ -170,18 +174,18 @@ async function showPreview(document: vscode.TextDocument) {
 
     // Try to get HTML from language server, fallback to basic conversion
     let html: string;
+    if (!client || !client.isRunning()) {
+        throw new Error('Language server is not running');
+    }
     try {
-        if (client && client.isRunning()) {
-            html = await client.sendRequest<string>('outlinetext/preview', {
-                uri: document.uri.toString(),
-                content: content
-            });
-        } else {
-            html = basicOutlineTextToHtml(content);
-        }
+        html = await client.sendRequest<string>('outlinetext/preview', {
+            uri: document.uri.toString(),
+            content: content
+        });
+
     } catch (error) {
         console.log('Language server not available, using basic parser');
-        html = basicOutlineTextToHtml(content);
+        html = `error: ${error}`;
     }
 
     // Create or update preview panel
@@ -201,27 +205,41 @@ async function showPreview(document: vscode.TextDocument) {
         previewPanel.onDidDispose(() => {
             previewPanel = undefined;
         });
+
+        // Listen for messages from the webview for debugging
+        previewPanel.webview.onDidReceiveMessage((message) => {
+            switch (message.type) {
+                case 'log':
+                    console.log('[Webview]', message.level, message.args);
+                    break;
+                case 'error':
+                    console.error('[Webview Error]', message.message, message.stack);
+                    break;
+            }
+        });
     }
 
-    previewPanel.webview.html = getPreviewHtml(html);
+    // Get extension context to access resource URIs
+    previewPanel.webview.html = getPreviewHtml(html, previewPanel.webview, extensionContext);
 }
 
 async function exportAsHtml(document: vscode.TextDocument) {
     const content = document.getText();
 
+    if (!client || !client.isRunning()) {
+        throw new Error('Language server is not running');
+    }
+
     // Try to get HTML from language server, fallback to basic conversion
     let html: string;
     try {
-        if (client && client.isRunning()) {
-            html = await client.sendRequest<string>('outlinetext/preview', {
-                uri: document.uri.toString(),
-                content: content
-            });
-        } else {
-            html = basicOutlineTextToHtml(content);
-        }
+        html = await client.sendRequest<string>('outlinetext/preview', {
+            uri: document.uri.toString(),
+            content: content
+        });
+
     } catch (error) {
-        html = basicOutlineTextToHtml(content);
+        html = `error: ${error}`;
     }
 
     const fullHtml = generateFullHtmlDocument(html, document.fileName);
@@ -230,7 +248,7 @@ async function exportAsHtml(document: vscode.TextDocument) {
     const saveUri = await vscode.window.showSaveDialog({
         defaultUri: vscode.Uri.file(document.fileName.replace(/\.(content|otl)$/, '.html')),
         filters: {
-            'HTML Files': ['html']
+            'htmlFiles': ['html']
         }
     });
 
@@ -240,174 +258,63 @@ async function exportAsHtml(document: vscode.TextDocument) {
     }
 }
 
-function basicOutlineTextToHtml(content: string): string {
-    // Enhanced basic OutlineText to HTML conversion (fallback)
-    const lines = content.split('\n');
-    let html = '';
-    let inCodeBlock = false;
-    let codeBlockType = '';
-    let inList = false;
-    let listLevel = 0;
+function getPreviewHtml(content: string, webview: vscode.Webview, context: vscode.ExtensionContext): string {
+    const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'style.css'));
+    const loadMathJaxJsUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'load-mathjax.js'));
+    const loadSyntaxHighlighterJsUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'load-syntaxhighlighter.js'));
+    const debugJsUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'debug.js'));
 
-    for (let i = 0; i < lines.length; i++) {
-        let line = lines[i];
+    // Create resource map for SyntaxHighlighter
+    const syntaxHighlighterResources = new Map([
+        ['styles/shCoreDefault.css', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'styles', 'shCoreDefault.css')).toString()],
+        ['scripts/shCore.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shCore.js')).toString()],
+        ['scripts/shAutoloader.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shAutoloader.js')).toString()],
+        ['scripts/shBrushAppleScript.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushAppleScript.js')).toString()],
+        ['scripts/shBrushAS3.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushAS3.js')).toString()],
+        ['scripts/shBrushBash.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushBash.js')).toString()],
+        ['scripts/shBrushColdFusion.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushColdFusion.js')).toString()],
+        ['scripts/shBrushCpp.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushCpp.js')).toString()],
+        ['scripts/shBrushCSharp.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushCSharp.js')).toString()],
+        ['scripts/shBrushCss.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushCss.js')).toString()],
+        ['scripts/shBrushDelphi.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushDelphi.js')).toString()],
+        ['scripts/shBrushDiff.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushDiff.js')).toString()],
+        ['scripts/shBrushErlang.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushErlang.js')).toString()],
+        ['scripts/shBrushGroovy.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushGroovy.js')).toString()],
+        ['scripts/shBrushJava.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushJava.js')).toString()],
+        ['scripts/shBrushJavaFX.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushJavaFX.js')).toString()],
+        ['scripts/shBrushJScript.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushJScript.js')).toString()],
+        ['scripts/shBrushPerl.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushPerl.js')).toString()],
+        ['scripts/shBrushPhp.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushPhp.js')).toString()],
+        ['scripts/shBrushPlain.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushPlain.js')).toString()],
+        ['scripts/shBrushPowerShell.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushPowerShell.js')).toString()],
+        ['scripts/shBrushPython.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushPython.js')).toString()],
+        ['scripts/shBrushRuby.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushRuby.js')).toString()],
+        ['scripts/shBrushSass.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushSass.js')).toString()],
+        ['scripts/shBrushScala.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushScala.js')).toString()],
+        ['scripts/shBrushSql.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushSql.js')).toString()],
+        ['scripts/shBrushVb.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushVb.js')).toString()],
+        ['scripts/shBrushXml.js', webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'webview-public', 'syntaxhighlighter', 'scripts', 'shBrushXml.js')).toString()]
+    ]);
 
-        // Handle code blocks
-        if (line.trim().startsWith('```')) {
-            if (!inCodeBlock) {
-                codeBlockType = line.trim().substring(3);
-                inCodeBlock = true;
-                html += `<pre><code class="language-${codeBlockType}">`;
-            } else {
-                inCodeBlock = false;
-                html += '</code></pre>';
-                codeBlockType = '';
-            }
-            continue;
-        }
+    // Convert Map to Object for JSON serialization
+    const resourcesObject = Object.fromEntries(syntaxHighlighterResources);
 
-        if (inCodeBlock) {
-            html += escapeHtml(line) + '\n';
-            continue;
-        }
-
-        // Empty lines
-        if (line.trim() === '') {
-            if (inList) {
-                html += '</ul>';
-                inList = false;
-                listLevel = 0;
-            }
-            html += '<br>';
-            continue;
-        }
-
-        // Headers
-        const headerMatch = line.match(/^(#{1,6})\s+(.+)$/);
-        if (headerMatch) {
-            if (inList) {
-                html += '</ul>';
-                inList = false;
-                listLevel = 0;
-            }
-            const level = headerMatch[1].length;
-            const text = processInlineElements(headerMatch[2]);
-            html += `<h${level}>${text}</h${level}>`;
-            continue;
-        }
-
-        // Lists
-        const listMatch = line.match(/^(\s*)[\*\+\-]\s+(.+)$/);
-        if (listMatch) {
-            const indent = listMatch[1].length;
-            const text = processInlineElements(listMatch[2]);
-
-            if (!inList) {
-                html += '<ul>';
-                inList = true;
-                listLevel = indent;
-            }
-
-            html += `<li>${text}</li>`;
-            continue;
-        }
-
-        // Regular paragraphs
-        if (inList) {
-            html += '</ul>';
-            inList = false;
-            listLevel = 0;
-        }
-
-        if (line.trim() !== '') {
-            html += `<p>${processInlineElements(line)}</p>`;
-        }
-    }
-
-    // Close any open lists
-    if (inList) {
-        html += '</ul>';
-    }
-
-    return `<div class="outlinetext-parser-output">${html}</div>`;
-}
-
-function processInlineElements(text: string): string {
-    return text
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\/\/(.*?)\/\//g, '<em>$1</em>')
-        .replace(/__(.*?)__/g, '<mark>$1</mark>')
-        .replace(/~~(.*?)~~/g, '<del>$1</del>')
-        .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>')
-        .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" loading="lazy" />')
-        .replace(/`([^`]+)`/g, '<code>$1</code>');
-}
-
-function escapeHtml(text: string): string {
-    return text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
-
-function getPreviewHtml(content: string): string {
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OutlineText Preview</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            margin: 20px;
-            color: var(--vscode-foreground);
-            background-color: var(--vscode-editor-background);
-        }
+    <link rel="stylesheet" href="${styleUri}">
+    <script>        
+        // Provide resource map
+        window.SyntaxHighlighterResources = ${JSON.stringify(resourcesObject)};
         
-        .outlinetext-parser-output {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        
-        h1, h2, h3, h4, h5, h6 {
-            color: var(--vscode-textLink-foreground);
-            margin-top: 1.5em;
-            margin-bottom: 0.5em;
-        }
-        
-        p { margin-bottom: 1em; }
-        
-        code {
-            background-color: var(--vscode-textCodeBlock-background);
-            color: var(--vscode-textPreformat-foreground);
-            padding: 2px 4px;
-            border-radius: 3px;
-            font-family: var(--vscode-editor-font-family);
-        }
-        
-        a {
-            color: var(--vscode-textLink-foreground);
-            text-decoration: none;
-        }
-        
-        a:hover {
-            text-decoration: underline;
-        }
-        
-        img {
-            max-width: 100%;
-            height: auto;
-        }
-        
-        mark {
-            background-color: var(--vscode-editor-findMatchHighlightBackground);
-            color: var(--vscode-editor-foreground);
-        }
-    </style>
+        console.log('Webview initialized with resources:', Object.keys(window.SyntaxHighlighterResources));
+    </script>
+    <script src="${debugJsUri}"></script>
+    <script src="${loadSyntaxHighlighterJsUri}"></script>
+    <script src="${loadMathJaxJsUri}"></script>
 </head>
 <body>
     ${content}

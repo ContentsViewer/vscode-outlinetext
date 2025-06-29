@@ -1,7 +1,6 @@
 import path from 'path';
 import fs from 'fs/promises';
 import type { WasmParser, ParseOptions, ParseResult, ParseDiagnostic } from './shared/types';
-// import { OutlineTextJSParser, OutlineTextParseContext } from './outline-text-js-parser';
 
 // PHP WASM interface
 interface PhpWasm {
@@ -88,18 +87,35 @@ export class OutlineTextParser implements WasmParser {
             const runtime = await loadNodeRuntime('8.3');
             this.phpModule = new PHP(runtime);
 
-            // Load our OutlineText parser PHP code
-            const phpCodePath = path.join(__dirname, '../../wasm/php/OutlineText.php');
-            const phpCode = await fs.readFile(phpCodePath, 'utf-8');
+            {
+                // Load our OutlineText parser PHP code
+                const phpCodePath = path.join(__dirname, '../../wasm/php/OutlineText.php');
+                const phpCode = await fs.readFile(phpCodePath, 'utf-8');
+                await this.phpModule.writeFile('OutlineText.php', phpCode);
 
-            // Execute the PHP code to register functions
-            const result = await this.phpModule.run({
-                code: phpCode
-            });
+                // Execute the PHP code to register functions
+                const result = await this.phpModule.run({
+                    code: `<?php
+                    require_once "OutlineText.php";
+                    OutlineText\\Parser::Init();
+                    ?>`
+                });
+                console.log("BBBBBB", result);
 
-            if (result.errors) {
-                console.error('PHP errors:', result.errors);
+                if (result.errors) {
+                    console.error('PHP errors:', result.errors);
+                    throw new Error('PHP initialization failed: ' + result.errors);
+                }
             }
+            {
+                // const result = await this.phpModule.run({
+                //     code: `<?php
+                //     OutlineText\\Parser::Init();
+                //     ?>`
+                // });
+                // console.log("!!!!",result);
+            }
+
 
             this.wasmModule = this.phpModule;
         } catch (error) {
@@ -114,16 +130,24 @@ export class OutlineTextParser implements WasmParser {
                 throw new Error('PHP WASM not initialized');
             }
 
-            // Escape content for PHP
-            const escapedContent = JSON.stringify(content);
+            
+            // Use Base64 encoding for safe in-memory transfer
+            const base64Content = Buffer.from(content, 'utf-8').toString('base64');
+            console.log("!!!!", content.substring(0, 100) + "...");
 
             // Call PHP function through WASM using correct API
             const result = await this.phpModule.run({
                 code: `<?php
-                    $result = parseOutlineText(${escapedContent});
-                    echo $result;
+                    require_once "OutlineText.php";
+                    use OutlineText\\Parser;
+                    
+                    $content = base64_decode('${base64Content}');
+                    $html = Parser::Parse($content);
+                    echo json_encode(['html' => $html, 'metadata' => [], 'diagnostics' => []]);
                 ?>`
             });
+            
+            console.log("!result", result);
 
             if (result.errors) {
                 console.error('PHP execution errors:', result.errors);

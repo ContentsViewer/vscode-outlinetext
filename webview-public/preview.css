@@ -1,0 +1,250 @@
+/* OutlineText Preview Styles */
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.7;
+    margin: 0;
+    padding: 20px;
+    color: var(--vscode-foreground);
+    background-color: var(--vscode-editor-background);
+}
+
+.outlinetext-parser-output {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--vscode-textLink-foreground);
+    margin-top: 2em;
+    margin-bottom: 0.8em;
+    font-weight: 600;
+    border-bottom: 1px solid var(--vscode-panel-border);
+    padding-bottom: 0.3em;
+}
+
+h1 { font-size: 2.2em; }
+h2 { font-size: 1.8em; }
+h3 { font-size: 1.5em; }
+h4 { font-size: 1.3em; }
+
+/* Paragraphs */
+p {
+    margin-bottom: 1.2em;
+    text-align: justify;
+}
+
+/* Code */
+code {
+    background-color: var(--vscode-textCodeBlock-background);
+    color: var(--vscode-textPreformat-foreground);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: var(--vscode-editor-font-family), 'Monaco', 'Consolas', monospace;
+    font-size: 0.9em;
+}
+
+pre {
+    background-color: var(--vscode-textCodeBlock-background);
+    color: var(--vscode-textPreformat-foreground);
+    padding: 16px;
+    border-radius: 6px;
+    overflow-x: auto;
+    border-left: 4px solid var(--vscode-textLink-foreground);
+}
+
+pre code {
+    background: none;
+    padding: 0;
+    border-radius: 0;
+}
+
+/* Links */
+a {
+    color: var(--vscode-textLink-foreground);
+    text-decoration: none;
+    border-bottom: 1px dotted;
+}
+
+a:hover {
+    text-decoration: underline;
+    border-bottom: 1px solid;
+}
+
+/* Lists */
+ul, ol {
+    margin-bottom: 1.2em;
+    padding-left: 1.5em;
+}
+
+li {
+    margin-bottom: 0.5em;
+}
+
+/* Tables */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1.5em 0;
+    border: 1px solid var(--vscode-panel-border);
+}
+
+th, td {
+    border: 1px solid var(--vscode-panel-border);
+    padding: 12px 16px;
+    text-align: left;
+}
+
+th {
+    background-color: var(--vscode-editor-lineHighlightBackground);
+    font-weight: 600;
+}
+
+/* Images */
+img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+figure {
+    margin: 1.5em 0;
+    text-align: center;
+}
+
+figcaption {
+    font-style: italic;
+    color: var(--vscode-descriptionForeground);
+    margin-top: 0.5em;
+}
+
+/* Blockquotes */
+blockquote {
+    border-left: 4px solid var(--vscode-textLink-foreground);
+    margin: 1.5em 0;
+    padding: 0.5em 1.5em;
+    background-color: var(--vscode-editor-lineHighlightBackground);
+    font-style: italic;
+}
+
+/* Highlighting */
+mark {
+    background-color: var(--vscode-editor-findMatchHighlightBackground);
+    color: var(--vscode-editor-foreground);
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+/* Strong and emphasis */
+strong {
+    font-weight: 700;
+    color: var(--vscode-textPreformat-foreground);
+}
+
+em {
+    font-style: italic;
+    color: var(--vscode-textLink-foreground);
+}
+
+/* Horizontal rule */
+hr {
+    border: none;
+    height: 2px;
+    background: linear-gradient(to right, transparent, var(--vscode-panel-border), transparent);
+    margin: 2em 0;
+}
+
+/* Definition lists */
+dl {
+    margin: 1.5em 0;
+}
+
+dt {
+    font-weight: 600;
+    margin-top: 1em;
+    color: var(--vscode-textLink-foreground);
+}
+
+dd {
+    margin-left: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+/* Boxes/Containers */
+.box-note, .box-warning, .box-caution {
+    padding: 1em 1.5em;
+    margin: 1.5em 0;
+    border-radius: 6px;
+    border-left: 4px solid;
+}
+
+.box-note {
+    background-color: var(--vscode-textCodeBlock-background);
+    border-left-color: var(--vscode-textLink-foreground);
+}
+
+.box-warning {
+    background-color: rgba(255, 193, 7, 0.1);
+    border-left-color: #ffc107;
+}
+
+.box-caution {
+    background-color: rgba(220, 53, 69, 0.1);
+    border-left-color: #dc3545;
+}
+
+.box-title {
+    font-weight: 600;
+    font-size: 1.1em;
+    margin-bottom: 0.5em;
+    display: block;
+}
+
+/* Math equations */
+.math {
+    text-align: center;
+    margin: 1.5em 0;
+    font-family: 'Times New Roman', serif;
+}
+
+/* References */
+.references {
+    border-top: 2px solid var(--vscode-panel-border);
+    margin-top: 3em;
+    padding-top: 1em;
+}
+
+.reference {
+    font-size: 0.9em;
+    color: var(--vscode-descriptionForeground);
+}
+
+.reference-text {
+    margin-left: 0.5em;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    .outlinetext-parser-output {
+        padding: 10px;
+    }
+    
+    h1 { font-size: 1.8em; }
+    h2 { font-size: 1.5em; }
+    h3 { font-size: 1.3em; }
+    
+    table {
+        font-size: 0.9em;
+    }
+    
+    th, td {
+        padding: 8px 12px;
+    }
+}
