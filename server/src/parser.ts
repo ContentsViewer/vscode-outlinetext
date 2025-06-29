@@ -121,19 +121,30 @@ export class OutlineTextParser implements WasmParser {
             }
 
             // Normalize line endings: remove CR characters to get LF-only
-            const normalizedContent = content.replace(/\r/g, '');
+            let normalizedContent = content.replace(/\r/g, '');
+
+            // Replace CURRENT_DIR with actual directory path if sourceUri is provided
+            let currentDir: string = '.';
+            if (options.sourceUri) {
+                const sourceUri = options.sourceUri;
+                currentDir = path.dirname(sourceUri).replace(/\\/g, '/');
+            }
 
             // Use Base64 encoding for safe in-memory transfer
             const base64Content = Buffer.from(normalizedContent, 'utf-8').toString('base64');
+            const base64CurrentDir = Buffer.from(currentDir, 'utf-8').toString('base64');
 
             // Call PHP function through WASM using correct API
             const result = await this.phpModule.run({
                 code: `<?php
                     require_once "OutlineText.php";
                     use OutlineText\\Parser;
-                    
+
                     $content = base64_decode('${base64Content}');
+                    $currentDir = base64_decode('${base64CurrentDir}');
+                    
                     $context = new OutlineText\\Context();
+                    $context->pathMacros = [['CURRENT_DIR'], [$currentDir]];
                     $html = Parser::Parse($content, $context);
                     echo json_encode(['html' => $html, 'metadata' => [], 'diagnostics' => []]);
                 ?>`

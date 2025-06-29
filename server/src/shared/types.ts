@@ -10,6 +10,7 @@ export interface ParseOptions {
     enableCache?: boolean;
     outputFormat?: 'html' | 'ast';
     maxSize?: number;
+    sourceUri?: string; // URI of the source file for CURRENT_DIR replacement
 }
 
 export interface ParseResult {

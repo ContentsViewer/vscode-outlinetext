@@ -179,7 +179,11 @@ async function showPreview(document: vscode.TextDocument) {
             vscode.ViewColumn.Beside,
             {
                 enableScripts: true,
-                retainContextWhenHidden: true
+                retainContextWhenHidden: true,
+                localResourceRoots: [
+                    extensionContext.extensionUri,
+                    vscode.Uri.file(path.dirname(document.uri.fsPath)) // Allow access to document's directory
+                ]
             }
         );
 
@@ -200,8 +204,34 @@ async function showPreview(document: vscode.TextDocument) {
         });
     }
 
+    // Process HTML to convert local image paths to webview URIs
+    const processedHtml = processImagePaths(html, document.uri, previewPanel.webview);
+
     // Get extension context to access resource URIs
-    previewPanel.webview.html = getPreviewHtml(html, previewPanel.webview, extensionContext);
+    previewPanel.webview.html = getPreviewHtml(processedHtml, previewPanel.webview, extensionContext);
+}
+
+/**
+ * Convert local image paths in HTML to webview-compatible URIs
+ */
+function processImagePaths(html: string, documentUri: vscode.Uri, webview: vscode.Webview): string {
+    const documentDir = path.dirname(documentUri.fsPath);
+    
+    // Replace local file paths in <img> tags with webview URIs
+    return html.replace(/<img\s+([^>]*?)src\s*=\s*['"](file:\/\/\/[^'"]*?)['"]([^>]*?)>/gi, (match, prefix, src, suffix) => {
+        try {
+            // Extract the file path from the file:/// URI
+            const filePath = decodeURIComponent(src.replace('file:///', ''));
+            const imageUri = vscode.Uri.file(filePath);
+            const webviewUri = webview.asWebviewUri(imageUri);
+            
+            console.log(`Converting image path: ${src} -> ${webviewUri.toString()}`);
+            return `<img ${prefix}src="${webviewUri.toString()}"${suffix}>`;
+        } catch (error) {
+            console.warn(`Failed to convert image path: ${src}`, error);
+            return match; // Return original if conversion fails
+        }
+    });
 }
 
 

@@ -152,7 +152,11 @@ connection.onRequest('outlinetext/preview', async (params: ParseRequest): Promis
     try {
         const content = params.content;
         const options = params.options || {};
-        console.log("params.uri:",params.uri);
+        
+        // Add sourceUri to options for CURRENT_DIR replacement
+        options.sourceUri = params.uri;
+        
+        console.log("params.uri:", params.uri);
         const result = await parser.parse(content, options);
         return result.html;
     } catch (error) {
