@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "description": "OutlineText Language Server",
   "dependencies": {
+    "@php-wasm/node": "^1.1.4",
+    "@php-wasm/universal": "^1.1.4",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.11"
   },

@@ -11,8 +11,6 @@ import {
     TextDocumentPositionParams,
     TextDocumentSyncKind,
     InitializeResult,
-    DocumentDiagnosticReportKind,
-    type DocumentDiagnosticReport,
 } from 'vscode-languageserver/node';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
