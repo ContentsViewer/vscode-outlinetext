@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  push:
+    tags: [ 'v*' ]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write  # For creating releases
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Clean and install production dependencies
+      run: |
+        # Clean existing node_modules
+        rm -rf node_modules server/node_modules
+        # Install only production dependencies
+        npm ci --omit=dev
+        cd server && npm ci --omit=dev && cd ..
+        
+    - name: Compile TypeScript
+      run: npm run compile
+      
+    - name: Install VSCE
+      run: npm install -g @vscode/vsce
+      
+    - name: Package VSIX
+      run: vsce package
+      
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: '*.vsix'
+        generate_release_notes: true
+        tag_name: ${{ github.ref_name }}
+        name: Release ${{ github.ref_name }}
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
