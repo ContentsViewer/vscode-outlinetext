@@ -15,7 +15,6 @@ import {
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { OutlineTextParser } from './parser';
-import { CacheManager } from './cache';
 import type { ParseRequest, ParseResult, OutlineTextSettings } from './shared/types';
 
 // LSP Connection
@@ -24,13 +23,11 @@ const connection = createConnection(ProposedFeatures.all);
 // Document manager
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
-// Parser and cache
+// Parser
 const parser = new OutlineTextParser();
-const cache = new CacheManager();
 
 // Settings
 let globalSettings: OutlineTextSettings = {
-    enableCache: true,
     autoRefresh: true,
     diagnosticsEnabled: true,
     maxDocumentSize: 1024 * 1024 // 1MB
@@ -93,12 +90,8 @@ connection.onInitialized(async () => {
 });
 
 connection.onDidChangeConfiguration(change => {
-    if (hasConfigurationCapability) {
-        cache.clear();
-    } else {
-        globalSettings = <OutlineTextSettings>(
-            (change.settings.outlinetext || globalSettings)
-        );
+    if (!hasConfigurationCapability) {
+        globalSettings = change.settings.outlinetext || globalSettings;
     }
 
     // Revalidate all open text documents
@@ -117,30 +110,7 @@ connection.onRequest('outlinetext/parse', async (params: ParseRequest): Promise<
     try {
         const content = params.content;
         const options = params.options || {};
-
-        // Check cache
-        if (globalSettings.enableCache && options.enableCache !== false) {
-            const cached = cache.get(content);
-            if (cached) {
-                return {
-                    ...cached,
-                    metadata: {
-                        parseTime: cached.metadata?.parseTime || 0,
-                        ...cached.metadata,
-                        cacheHit: true
-                    }
-                };
-            }
-        }
-
-        // Parse with WASM
         const result = await parser.parse(content, options);
-
-        // Store in cache
-        if (globalSettings.enableCache) {
-            cache.set(content, result);
-        }
-
         return result;
     } catch (error) {
         connection.console.error('Parse error: ' + error);
@@ -283,5 +253,4 @@ connection.listen();
 // Cleanup on exit
 process.on('exit', () => {
     parser.dispose();
-    cache.clear();
 });

@@ -7,7 +7,6 @@ export interface ParseRequest {
 }
 
 export interface ParseOptions {
-    enableCache?: boolean;
     outputFormat?: 'html' | 'ast';
     maxSize?: number;
     sourceUri?: string; // URI of the source file for CURRENT_DIR replacement
@@ -21,7 +20,6 @@ export interface ParseResult {
 
 export interface ParseMetadata {
     parseTime: number;
-    cacheHit?: boolean;
     references?: ReferenceInfo[];
     headings?: HeadingInfo[];
 }
@@ -65,7 +63,6 @@ export interface WasmParser {
 
 // Settings Interface
 export interface OutlineTextSettings {
-    enableCache: boolean;
     autoRefresh: boolean;
     diagnosticsEnabled: boolean;
     maxDocumentSize: number;

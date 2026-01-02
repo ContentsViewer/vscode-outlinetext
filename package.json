@@ -2,7 +2,7 @@
   "name": "outlinetext",
   "displayName": "OutlineText",
   "description": "OutlineText language support with LSP and WASM parser for Visual Studio Code.",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "preview": true,
   "publisher": "ContentsViewer",
   "icon": "./images/outlinetext.png",

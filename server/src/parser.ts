@@ -2,16 +2,8 @@ import path from 'path';
 import fs from 'fs/promises';
 import type { WasmParser, ParseOptions, ParseResult, ParseDiagnostic } from './shared/types';
 
-// PHP WASM interface
-interface PhpWasm {
-    run(code: string): string;
-    setPhpCode(code: string): void;
-    call(functionName: string, ...args: any[]): any;
-}
-
 export class OutlineTextParser implements WasmParser {
     private isInitialized = false;
-    private wasmModule: any = null;
     private phpModule: any = null;
 
     async initialize(): Promise<void> {
@@ -20,7 +12,6 @@ export class OutlineTextParser implements WasmParser {
         }
 
         try {
-            // Try to load actual PHP WASM with correct API
             await this.initializePhpWasm();
             console.log('PHP WASM parser initialized successfully.');
 
@@ -35,7 +26,7 @@ export class OutlineTextParser implements WasmParser {
         if (!this.isInitialized) {
             await this.initialize();
         }
-        if (this.wasmModule === null) {
+        if (this.phpModule === null) {
             throw new Error('WASM parser is not initialized');
         }
 
@@ -69,45 +60,51 @@ export class OutlineTextParser implements WasmParser {
             // Cleanup WASM module
             this.phpModule = null;
         }
-
-        if (this.wasmModule) {
-            this.wasmModule = null;
-        }
-
         this.isInitialized = false;
     }
 
     private async initializePhpWasm(): Promise<void> {
         try {
-            // Import correct modules according to documentation
-            const { PHP } = await import('@php-wasm/universal');
-            const { loadNodeRuntime } = await import('@php-wasm/node');
+            // Import modules for @php-wasm v3.x
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            const phpWasmUniversal = require('@php-wasm/universal');
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            const phpWasmNode = require('@php-wasm/node');
 
-            // Load PHP runtime for Node.js and create PHP instance
-            const runtime = await loadNodeRuntime('8.3');
-            this.phpModule = new PHP(runtime);
+            const PHP = phpWasmUniversal.PHP;
+            const loadNodeRuntime = phpWasmNode.loadNodeRuntime;
+            const FileLockManagerForNode = phpWasmNode.FileLockManagerForNode;
 
-            {
-                // Load our OutlineText parser PHP code
-                const phpCodePath = path.join(__dirname, '../../wasm/php/OutlineText.php');
-                const phpCode = await fs.readFile(phpCodePath, 'utf-8');
-                await this.phpModule.writeFile('OutlineText.php', phpCode);
+            // Create file lock manager for Node.js
+            const fileLockManager = new FileLockManagerForNode();
 
-                // Execute the PHP code to register functions
-                const result = await this.phpModule.run({
-                    code: `<?php
-                    require_once "OutlineText.php";
-                    OutlineText\\Parser::Init();
-                    ?>`
-                });
-
-                if (result.errors) {
-                    console.error('PHP errors:', result.errors);
-                    throw new Error('PHP initialization failed: ' + result.errors);
+            // Load PHP runtime for Node.js with file lock manager
+            const runtimeId = await loadNodeRuntime('8.3', {
+                emscriptenOptions: {
+                    fileLockManager
                 }
-            }
+            });
 
-            this.wasmModule = this.phpModule;
+            // Create PHP instance with the runtime ID
+            this.phpModule = new PHP(runtimeId);
+
+            // Load our OutlineText parser PHP code
+            const phpCodePath = path.join(__dirname, '../../wasm/php/OutlineText.php');
+            const phpCode = await fs.readFile(phpCodePath, 'utf-8');
+            this.phpModule.writeFile('/OutlineText.php', phpCode);
+
+            // Execute the PHP code to register functions
+            const result = await this.phpModule.run({
+                code: `<?php
+                require_once "/OutlineText.php";
+                OutlineText\\Parser::Init();
+                ?>`
+            });
+
+            if (result.errors) {
+                console.error('PHP errors:', result.errors);
+                throw new Error('PHP initialization failed: ' + result.errors);
+            }
         } catch (error) {
             console.error('PHP WASM initialization failed:', error);
             throw error;
@@ -137,7 +134,7 @@ export class OutlineTextParser implements WasmParser {
             // Call PHP function through WASM using correct API
             const result = await this.phpModule.run({
                 code: `<?php
-                    require_once "OutlineText.php";
+                    require_once "/OutlineText.php";
                     use OutlineText\\Parser;
 
                     $content = base64_decode('${base64Content}');
