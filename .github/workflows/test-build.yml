@@ -35,32 +35,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
     needs: test
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '18'
         cache: 'npm'
-        
-    - name: Clean and install production dependencies
+
+    - name: Install dependencies
       run: |
-        # Clean existing node_modules
-        rm -rf node_modules server/node_modules
-        # Install only production dependencies
-        npm ci --omit=dev
-        cd server && npm ci --omit=dev && cd ..
-        
-    - name: Install build tools (TypeScript and type definitions)
-      run: |
-        # Install TypeScript compiler and type definitions for build only
-        # Use specific versions to match package.json and avoid compatibility issues
-        npm install --no-save typescript@5.1.3 @types/node@20.2.5
-        cd server && npm install --no-save typescript@5.1.3 @types/node@20.2.5 && cd ..
-        
+        npm ci
+        cd server && npm ci && cd ..
+
     - name: Compile TypeScript
       run: npm run compile
       
